@@ -1,0 +1,3 @@
+{
+  "image": "us-docker.pkg.dev/akvelon-gke-aieco/metaflow-tutorial-image-registry/finetune:latest"
+}

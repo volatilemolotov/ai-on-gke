@@ -39,6 +39,7 @@ module "gke" {
   monitoring_enabled_components        = ["SYSTEM_COMPONENTS"]
   monitoring_enable_managed_prometheus = var.monitoring_enable_managed_prometheus
   master_authorized_networks           = var.master_authorized_networks
+  grant_registry_access                = var.grant_registry_access
 
   ray_operator_config = {
     enabled            = var.ray_addon_enabled

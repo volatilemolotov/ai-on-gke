@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metaflow-database-deployment
+  namespace: default
+  labels:
+    app: metaflow-database 
+spec:
+  selector:
+    matchLabels:
+      app: metaflow-database
+  template:
+    metadata:
+      labels:
+        app: metaflow-database
+    spec:
+      containers:
+      - name: db
+        image: docker.io/postgres:11
+        # image: docker.io/nginx
+        env:
+          - name: POSTGRES_USER
+            value: postgres
+          - name: POSTGRES_PASSWORD
+            value: postgres
+          - name: POSTGRES_DB
+            value: metaflow 
+        ports:
+            - containerPort: 5i2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metaflow-database-service
+  namespace: default
+spec:
+  selector:
+    app: metaflow-database
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

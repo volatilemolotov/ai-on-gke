@@ -134,3 +134,9 @@ variable "ray_addon_enabled" {
   type        = bool
   default     = true
 }
+
+variable "grant_registry_access" {
+  type        = bool
+  description = "Grants created cluster-specific service account storage.objectViewer and artifactregistry.reader roles."
+  default     = false
+}

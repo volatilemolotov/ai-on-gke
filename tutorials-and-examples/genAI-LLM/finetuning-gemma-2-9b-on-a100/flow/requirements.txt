@@ -1,0 +1,4 @@
+metaflow
+google-cloud-storage
+google-auth
+kubernetes

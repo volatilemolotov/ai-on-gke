@@ -105,6 +105,7 @@ module "public-gke-standard-cluster" {
   gcs_fuse_csi_driver                  = var.gcs_fuse_csi_driver
   master_authorized_networks           = var.master_authorized_networks
   deletion_protection                  = var.deletion_protection
+  grant_registry_access                = var.grant_registry_access
 
   ## pools config variables
   cpu_pools                   = var.cpu_pools
