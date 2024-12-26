@@ -1,0 +1,3 @@
+{
+  "image": "us-docker.pkg.dev/${project_id}/${registry}/${image}"
+}

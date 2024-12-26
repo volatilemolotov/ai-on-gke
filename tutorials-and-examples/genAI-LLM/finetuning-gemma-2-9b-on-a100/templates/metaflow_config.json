@@ -1,0 +1,8 @@
+{
+    "METAFLOW_DATASTORE_SYSROOT_GS": "gs://${metaflow_datastore_bucket}",
+    "METAFLOW_DEFAULT_DATASTORE": "gs",
+    "METAFLOW_DEFAULT_METADATA": "service",
+    "METAFLOW_KUBERNETES_SERVICE_ACCOUNT": "${kubernetes_service_account_name}",
+    "METAFLOW_SERVICE_INTERNAL_URL": "http://metaflow-metadata-service.default:8080/",
+    "METAFLOW_SERVICE_URL": "http://localhost:8080"
+}
