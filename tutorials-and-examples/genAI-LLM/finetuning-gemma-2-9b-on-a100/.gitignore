@@ -2,3 +2,6 @@
 flow/.venv/
 flow/.metaflow/
 flow/metaflow.*.*/
+flow/flow_config.json
+cloudbuild.yaml
+metaflow_config.json

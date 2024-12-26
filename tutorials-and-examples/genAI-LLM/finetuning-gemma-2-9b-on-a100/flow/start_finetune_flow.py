@@ -31,7 +31,7 @@ class FinetuneFlow(FlowSpec):
 
     @environment(vars={
         "MODEL_NAME": "google/gemma-2-9b",
-        "NEW_MODEL": "gemma-2-9b-sql-finetuned-arkamalov-test",
+        "NEW_MODEL": "gemma-2-9b-finetuned",
         "LORA_R": "8",
         "LORA_ALPHA": "16",
         "TRAIN_BATCH_SIZE": "1",
