@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dima-mount-test
+  annotations:
+    gke-gcsfuse/volumes: "true"
+spec:
+  serviceAccount: default
+  containers:
+  - name: test-container
+    image: continuumio/anaconda3
+    command: [ "/bin/bash", "-c", "--" ]
+    args: [ "while true; do sleep 36000; done;" ]
+    volumeMounts:
+    - name: gcsfuse-datalake
+      mountPath: /data
+      readOnly: false
+  volumes:
+  - name: gcsfuse-datalake
+    csi:
+      driver: gcsfuse.csi.storage.gke.io
+      volumeAttributes:
+        bucketName: dima_llamaindex_1
+        mountOptions: "implicit-dirs"
+  restartPolicy: Never
