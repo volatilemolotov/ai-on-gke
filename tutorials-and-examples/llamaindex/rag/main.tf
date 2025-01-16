@@ -1,0 +1,65 @@
+data "google_client_config" "default" {}
+
+
+data "google_project" "project" {
+  project_id = var.project_id
+}
+
+module "gke_cluster" {
+  source = "../../../infrastructure"
+  count  = var.create_cluster ? 1 : 0
+
+  project_id        = var.project_id
+  cluster_name      = var.cluster_name
+  cluster_location  = var.cluster_location
+  autopilot_cluster = true
+  private_cluster   = var.private_cluster
+  create_network    = false
+  network_name      = "default"
+  subnetwork_name   = "default" 
+  #enable_gpu        = true
+  #gpu_pools         = var.gpu_pools
+  ray_addon_enabled = false
+}
+
+data "google_container_cluster" "existing_cluster" {
+  count    = var.create_cluster ? 0 : 1
+  name     = var.cluster_name
+  location = var.cluster_location
+}
+
+locals {
+  cluster_info = var.create_cluster ? {
+    endpoint        = module.gke_cluster[0].endpoint
+    ca_certificate  = module.gke_cluster[0].ca_certificate
+    private_cluster = var.private_cluster
+    } : {
+    endpoint        = data.google_container_cluster.existing_cluster[0].endpoint
+    ca_certificate  = data.google_container_cluster.existing_cluster[0].master_auth[0].cluster_ca_certificate
+    private_cluster = data.google_container_cluster.existing_cluster[0].private_cluster_config.0.enable_private_endpoint
+  }
+}
+
+locals {
+  ca_certificate        = base64decode(local.cluster_info.ca_certificate)
+  private_cluster       = local.cluster_info.private_cluster
+  cluster_membership_id = var.cluster_membership_id == "" ? var.cluster_name : var.cluster_membership_id
+  host                  = local.private_cluster ? "https://connectgateway.googleapis.com/v1/projects/${data.google_project.project.number}/locations/${var.cluster_location}/gkeMemberships/${local.cluster_membership_id}" : "https://${local.cluster_info.endpoint}"
+
+}
+
+provider "kubernetes" {
+  alias                  = "metaflow"
+  host                   = local.host
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = local.private_cluster ? "" : local.ca_certificate
+  dynamic "exec" {
+    for_each = local.private_cluster ? [1] : []
+    content {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "gke-gcloud-auth-plugin"
+    }
+  }
+}
+
+
