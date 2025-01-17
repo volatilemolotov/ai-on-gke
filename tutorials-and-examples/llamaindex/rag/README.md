@@ -49,7 +49,7 @@ gcloud storage cp - gs://<BUCKET_NAME>/datalake/paul_graham_essay.txt
 kubectl apply -f redis-stack.yaml
 ```
 
-5. Go to the `data-ingestion` directory. Let's build our deployment docker image so we can create a service in GKE cluster. First of all, give to you GKE cluster service account `Artifact Registry` reader permission. Then run the following command to build and submit Docker image:
+5. Go to the `data-ingestion` directory. Let's build our deployment docker image so we can create a service in the GKE cluster. First of all, give your GKE cluster service account `Artifact Registry` reader permission. Then run the following command to build and submit Docker
 ```bash
 gcloud builds submit .
 ```
