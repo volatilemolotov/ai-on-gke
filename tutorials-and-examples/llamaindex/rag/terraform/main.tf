@@ -6,7 +6,7 @@ data "google_project" "project" {
 }
 
 module "gke_cluster" {
-  source = "../../../infrastructure"
+  source = "../../../../infrastructure"
   count  = var.create_cluster ? 1 : 0
 
   project_id        = var.project_id
@@ -17,7 +17,7 @@ module "gke_cluster" {
   create_network    = false
   network_name      = "default"
   subnetwork_name   = "default" 
-  #enable_gpu        = true
+  enable_gpu        = true
   #gpu_pools         = var.gpu_pools
   ray_addon_enabled = false
 }
@@ -49,7 +49,7 @@ locals {
 }
 
 provider "kubernetes" {
-  alias                  = "metaflow"
+  alias                  = "llamaindex"
   host                   = local.host
   token                  = data.google_client_config.default.access_token
   cluster_ca_certificate = local.private_cluster ? "" : local.ca_certificate
@@ -63,3 +63,45 @@ provider "kubernetes" {
 }
 
 
+resource "google_storage_bucket" "datastore_bucket" {
+  project = var.project_id
+  name = "akamalov-llamaindex-test"
+
+  location      = "US"
+  storage_class = "STANDARD"
+
+  uniform_bucket_level_access = true
+  force_destroy               = true
+}
+
+module "llamaindex_workload_identity" {
+  providers = {
+    kubernetes = kubernetes.llamaindex
+  }
+  source                          = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+  name                            = "llamaindex-rag-sa"
+  #automount_service_account_token = true
+  namespace                       = "default"
+  roles                           = ["roles/storage.objectUser"]
+  project_id                      = var.project_id
+}
+
+
+
+resource "google_artifact_registry_repository" "image_repo" {
+  project = var.project_id
+  location      = "us"
+  repository_id = "akamalov-llamaindex-test"
+  format        = "DOCKER"
+}
+
+resource "google_artifact_registry_repository_iam_binding" "binding" {
+  project    = var.project_id
+  location   = "us"
+  repository = "akamalov-llamaindex-test"
+  role       = "roles/artifactregistry.reader"
+  members = [
+    "serviceAccount:${module.gke_cluster[0].service_account}",
+  ]
+  depends_on = ["google_artifact_registry_repository.image_repo", module.gke_cluster]
+}
