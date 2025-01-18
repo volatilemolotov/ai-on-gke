@@ -1,9 +1,4 @@
-import os
 from redisvl.schema import IndexSchema
-
-
-MODEL_NAME = os.getenv("MODEL_NAME", "BAAI/bge-small-en-v1.5")
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis-stack-service")
 
 custom_schema = IndexSchema.from_dict(
     {
@@ -27,3 +22,4 @@ custom_schema = IndexSchema.from_dict(
         ],
     }
 )
+

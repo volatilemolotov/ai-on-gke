@@ -1,3 +1,8 @@
+import os
+import sys
+import pathlib
+
+
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core.ingestion import (
     DocstoreStrategy,
@@ -12,13 +17,15 @@ from llama_index.vector_stores.redis import RedisVectorStore
 from redisvl.schema import IndexSchema
 from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
 
-from config import (
-    custom_schema,
-    MODEL_NAME,
-    REDIS_HOST,
-    REDIS_PORT,
-    INPUT_DIR,
-)
+# Add rag_demo package to PYTHONPATH so this script can access it.
+sys.path.append(str(pathlib.Path(__file__).parent.parent.absolute()))
+from rag_demo import custom_schema 
+
+MODEL_NAME = os.getenv("MODEL_NAME", "BAAI/bge-small-en-v1.5")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = int(os.getenv("REDIS_URL", "6379"))
+INPUT_DIR = os.getenv("INPUT_DIR", "input_dir")
+
 
 embed_model = HuggingFaceEmbedding(model_name=MODEL_NAME)
 vector_store = RedisVectorStore(
@@ -45,10 +52,20 @@ pipeline = IngestionPipeline(
     docstore_strategy=DocstoreStrategy.UPSERTS,
 )
 
-
 index = VectorStoreIndex.from_vector_store(
     pipeline.vector_store, embed_model=embed_model
 )
+
+
+#===============================================================
+import pathlib
+input_dir_path = pathlib.Path(INPUT_DIR)
+if not input_dir_path.exists():
+    input_dir_path.mkdir(parents=True)
+
+test_file = input_dir_path / "test.txt"
+test_file.write_text("test test test test test")
+#===============================================================
 
 reader = SimpleDirectoryReader(input_dir=INPUT_DIR)
 
