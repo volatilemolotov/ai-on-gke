@@ -1,4 +1,9 @@
+import os
+import logging 
+
 from redisvl.schema import IndexSchema
+
+logger = logging.getLogger()
 
 custom_schema = IndexSchema.from_dict(
     {
@@ -23,3 +28,10 @@ custom_schema = IndexSchema.from_dict(
     }
 )
 
+def getenv_or_exit(name: str) -> str:
+    value = os.getenv(name) 
+    if value is None:
+        logger.critical(f"The environment variable '{name}' is not specified")
+        exit(1)
+
+    return value
