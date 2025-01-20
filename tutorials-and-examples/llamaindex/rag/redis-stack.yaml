@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-stack-deployment
+  name: redis-stack
   namespace: default
   labels:
     app: redis-stack
