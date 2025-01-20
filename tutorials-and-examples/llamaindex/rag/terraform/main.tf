@@ -16,7 +16,7 @@ data "google_project" "project" {
 
 
 locals {
-  cluster_name = var.cluster_name != "" ? var.cluster_name: var.default_resource_name
+  cluster_name = var.cluster_name != "" ? var.cluster_name : var.default_resource_name
 }
 
 module "gke_cluster" {
@@ -29,9 +29,9 @@ module "gke_cluster" {
   private_cluster   = var.private_cluster
   create_network    = false
   network_name      = "default"
-  subnetwork_name   = "default" 
+  subnetwork_name   = "default"
   enable_gpu        = true
-  gpu_pools         = [
+  gpu_pools = [
     {
       name               = "gpu-pool-l4"
       machine_type       = "g2-standard-24"
@@ -74,14 +74,14 @@ provider "kubernetes" {
 }
 
 locals {
-  bucket_name=  var.bucket_name != "" ? var.bucket_name: var.default_resource_name 
-  service_account_name = var.service_account_name != "" ? var.service_account_name: var.default_resource_name
+  bucket_name          = var.bucket_name != "" ? var.bucket_name : var.default_resource_name
+  service_account_name = var.service_account_name != "" ? var.service_account_name : var.default_resource_name
 }
 
 
 resource "google_storage_bucket" "bucket" {
   project = var.project_id
-  name = local.bucket_name
+  name    = local.bucket_name
 
   location      = "US"
   storage_class = "STANDARD"
@@ -94,21 +94,20 @@ module "llamaindex_workload_identity" {
   providers = {
     kubernetes = kubernetes.llamaindex
   }
-  source                          = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  name                            = local.service_account_name
-  #automount_service_account_token = true
-  namespace                       = "default"
-  roles                           = ["roles/storage.objectUser"]
-  project_id                      = var.project_id
+  source     = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+  name       = local.service_account_name
+  namespace  = "default"
+  roles      = ["roles/storage.objectUser"]
+  project_id = var.project_id
   depends_on = [module.gke_cluster]
 }
 
 locals {
-  image_repository_name=  var.image_repository_name != "" ? var.image_repository_name: var.default_resource_name 
+  image_repository_name = var.image_repository_name != "" ? var.image_repository_name : var.default_resource_name
 }
 
 resource "google_artifact_registry_repository" "image_repo" {
-  project = var.project_id
+  project       = var.project_id
   location      = "us"
   repository_id = local.image_repository_name
   format        = "DOCKER"
@@ -134,15 +133,6 @@ provider "kubectl" {
   cluster_ca_certificate = var.private_cluster ? "" : base64decode(module.gke_cluster.ca_certificate)
   load_config_file       = true
 
-  #exec {
-  #  api_version = "client.authentication.k8s.io/v1beta1"
-  #  command     = "/bin/sh"
-  #  args = [
-  #    "-c",
-  #    "aws eks get-token --cluster-name ${module.eks.cluster_id} --output json"
-  #  ]
-  #}
-
   dynamic "exec" {
     for_each = var.private_cluster ? [1] : []
     content {
@@ -153,75 +143,37 @@ provider "kubectl" {
 }
 
 
-resource "kubectl_manifest" "redis_stack" {
-  provider = kubectl.llamaindex
-  yaml_body = templatefile(
-    "${path.module}/../redis-stack.yaml", 
-    {}
-  )
-  depends_on = [module.gke_cluster]
-}
-
-resource "kubectl_manifest" "ollama" {
-  provider = kubectl.llamaindex
-  yaml_body = templatefile(
-    "${path.module}/../templates/ollama-deployment.yaml", 
+resource "local_file" "ollama-deployment-file" {
+  content = templatefile(
+    "${path.module}/../templates/ollama-deployment.yaml",
     {
-      SERVICE_ACCOUNT_NAME=local.service_account_name,
-      GCSFUSE_BUCKET_NAME=local.bucket_name
+      SERVICE_ACCOUNT_NAME = local.service_account_name,
+      GCSFUSE_BUCKET_NAME  = local.bucket_name
     }
   )
-  depends_on = [google_storage_bucket.bucket, module.llamaindex_workload_identity]
+  filename = "${path.module}/../gen/ollama-deployment.yaml"
 }
 
-#resource "google_cloudbuild_trigger" "filename-trigger" {
-#  project = var.project_id
-#  location = "us-central1"
-#
-#  # trigger_template {
-#  #   branch_name = "main"
-#  #   repo_name   = "my-repo"
-#  # }
-#  webhook_config {
-#    secret = ""
-#  }
-#
-#  substitutions = {
-#    _FOO = "bar"
-#    _BAZ = "qux"
-#  }
-#
-#  filename = "${path.module}/../cloudbuild.yaml"
-#  depends_on = [google_artifact_registry_repository.image_repo]
-#}
 
-#resource "kubectl_manifest" "ingest-data-job" {
-#  provider = kubectl.llamaindex
-#  yaml_body = templatefile(
-#    "${path.module}/../templates/ingest-data-job.yaml", 
-#    {
-#      IMAGE_NAME="us-docker.pkg.dev/${var.project_id}/${local.image_repository_name}/llamaindex-rag-demo:latest"
-#      SERVICE_ACCOUNT_NAME=local.service_account_name,
-#      GCSFUSE_BUCKET_NAME=local.bucket_name
-#    }
-#  )
-#  depends_on = [kubectl_manifest.redis_stack, google_artifact_registry_repository_iam_binding.repo_binding]
-#    
-#}
-#
-#resource "kubectl_manifest" "rag" {
-#  provider = kubectl.llamaindex
-#  yaml_body = templatefile(
-#    "${path.module}/../templates/rag-deployment.yaml", 
-#    {
-#      IMAGE_NAME="us-docker.pkg.dev/${var.project_id}/${local.image_repository_name}/llamaindex-rag-demo:latest"
-#      MODEL_NAME="gemma2:9b"
-#    }
-#  )
-#  depends_on = [kubectl_manifest.redis_stack, google_artifact_registry_repository_iam_binding.repo_binding]
-#    
-#}
+resource "local_file" "ingest-data-job-file" {
+  content = templatefile(
+    "${path.module}/../templates/ingest-data-job.yaml",
+    {
+      IMAGE_NAME           = "us-docker.pkg.dev/${var.project_id}/${local.image_repository_name}/llamaindex-rag-demo:latest"
+      SERVICE_ACCOUNT_NAME = local.service_account_name,
+      GCSFUSE_BUCKET_NAME  = local.bucket_name
+    }
+  )
+  filename = "${path.module}/../gen/ingest-data-job.yaml"
+}
 
-
-
-
+resource "local_file" "rag-deployment-file" {
+  content = templatefile(
+    "${path.module}/../templates/rag-deployment.yaml",
+    {
+      IMAGE_NAME = "us-docker.pkg.dev/${var.project_id}/${local.image_repository_name}/llamaindex-rag-demo:latest"
+      MODEL_NAME = "gemma2:9b"
+    }
+  )
+  filename = "${path.module}/../gen/rag-deployment.yaml"
+}
