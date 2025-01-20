@@ -22,12 +22,12 @@ variable "cluster_membership_id" {
   default     = ""
 }
 variable "service_account_name" {
-  type=string
+  type = string
 }
 variable "bucket_name" {
-  type=string
+  type = string
 }
 variable "image_repository_name" {
-  type=string
+  type = string
 }
 

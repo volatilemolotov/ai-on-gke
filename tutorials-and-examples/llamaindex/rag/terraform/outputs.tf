@@ -13,3 +13,11 @@ output "project_id" {
   value       = var.project_id
   description = "GKE cluster location"
 }
+
+output "bucket_name" {
+  value = local.bucket_name
+}
+
+output "demo_app_image_repo_name" {
+  value = local.image_repository_name
+}
