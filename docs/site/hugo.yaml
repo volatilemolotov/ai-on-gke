@@ -1,0 +1,6 @@
+languageCode: en-us
+title: AI on GKE
+
+module:
+  imports:
+  - path: github.com/google/docsy
