@@ -1,6 +1,6 @@
-#terraform {
-#  backend "gcs" {
-#    bucket = "<your_bucket>"
-#    prefix = "terraform/state/website"
-#  }
-#}
+terraform {
+  backend "gcs" {
+    bucket = "arturkamalov-tf-backend"
+    prefix = "terraform/state/website"
+  }
+}
