@@ -1,15 +1,15 @@
 variable "project_id" {
-  type=string
+  type = string
 }
 
 variable "app_location" {
-  type=string
+  type = string
 }
 
 variable "service_account_name" {
-  type=string
+  type = string
 }
 
 variable "bucket_name" {
-  type=string
+  type = string
 }
