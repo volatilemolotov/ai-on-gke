@@ -23,18 +23,68 @@ resource "google_project_iam_member" "storage_viewer" {
 
 
 resource "google_storage_bucket" "bucket" {
+  project = var.project_id
   name     = var.bucket_name
+  uniform_bucket_level_access = true
+  force_destroy               = true
   location = "US"
 }
 
+data "archive_file" "source_archive" {
+  type        = "zip"
+  source_dir = "${path.module}/../site/public/"
+  output_path = "${path.module}/../source.zip"
+}
+
+resource "google_storage_bucket_object" "object" {
+  name   = "source.zip"
+  bucket = google_storage_bucket.bucket.name
+  source = "${path.module}/../source.zip"
+}
+
 resource "google_app_engine_standard_app_version" "myapp_v1" {
+  project = var.project_id
   version_id = "v1"
-  service    = "myapp"
-  runtime    = "nodejs20"
+  service    = "akamalov-test"
+  runtime    = "python39"
 
   entrypoint {
-    shell = "node ./app.js"
+    shell = ""
   }
+
+
+    handlers {
+      url_regex = "/$"
+      static_files {
+        path = "index.html"
+        upload_path_regex =  "index.html"
+      }
+    }
+  
+    handlers {
+      url_regex = "/(.*)/$"
+      static_files {
+        path = "\\1/index.html"
+        upload_path_regex = ".*/index.html"
+      }
+    }
+  
+    handlers {
+      url_regex = "/"
+      static_files {
+        path = "."
+        upload_path_regex = "."
+      }
+      security_level= "SECURE_ALWAYS"
+    }
+  
+    handlers {
+      url_regex =  "/.*"
+      security_level =  "SECURE_ALWAYS"
+      script {
+        script_path = "auto"
+      }
+    }
 
   deployment {
     zip {
@@ -42,9 +92,6 @@ resource "google_app_engine_standard_app_version" "myapp_v1" {
     }
   }
 
-  env_variables = {
-    port = "8080"
-  }
 
   automatic_scaling {
     max_concurrent_requests = 10
