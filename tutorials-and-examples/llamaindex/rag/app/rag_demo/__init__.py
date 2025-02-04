@@ -7,7 +7,7 @@ logger = logging.getLogger()
 
 custom_schema = IndexSchema.from_dict(
     {
-        "index": {"name": "gdrive", "prefix": "doc"},
+        "index": {"name": "bucket", "prefix": "doc"},
         # customize fields that are indexed
         "fields": [
             # required fields for llamaindex
