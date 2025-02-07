@@ -1,1 +1,0 @@
-../../../../../tutorials-and-examples/kserve/README.md

@@ -36,3 +36,6 @@ terraform.tfstate*
 terraform.tfvars
 tfplan
 .vscode/
+
+.hugo_build.lock
+go.sum

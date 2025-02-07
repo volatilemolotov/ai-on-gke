@@ -1,1 +1,0 @@
-../../../../../tutorials-and-examples/hf-tgi/README.md

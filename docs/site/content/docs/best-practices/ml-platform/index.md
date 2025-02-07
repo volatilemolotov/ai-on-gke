@@ -4,4 +4,4 @@ title: "ML Platform"
 weight: 30
 type: docs
 ---
-{{% include "data/best-practices/ml-platform/README.md" %}}
+{{% include "best-practices/ml-platform/README.md" %}}
