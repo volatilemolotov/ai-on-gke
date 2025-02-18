@@ -28,10 +28,11 @@ The demo application consist of following components:
 The data ingestion is a process of adding data to be used by a RAG.  
 It is defined in the `app/cmd/ingest_data.py`.
 
-#### Important code:
 
 File: `app/cmd/ingest_data.py`
+<details><summary>Expand to see key parts</summary>
 
+ 
 ```
 pipeline = IngestionPipeline(
     transformations=[
@@ -58,8 +59,13 @@ The pipeline variable defined IngestionPipeline, that has the following argument
 * `vector_store`: a place where the resulting nodes are placed.  
 * `cache`: a place where to store a cache for a faster document search.  
 * `docstore_strategy`: defines how the document store handles incoming data. In our case, it updates existing documents or inserts new ones if they don’t already exist.
+</details>
 
 File `app/rag_demo/__init__.py`:  
+
+<details><summary>Expand to see key parts</summary>
+
+
 In this demo we use [Redis-stack](https://redis.io/about/about-stack/) as our vector storage and we also have to define a data schema for it.
 
 ```
@@ -86,12 +92,13 @@ custom_schema = IndexSchema.from_dict(
     }
 )
 ```
+</details>
 
 ### RAG server
 
 Simple web application that invokes llamaindex RAG system and returns response. The web application will be a simple FastAPI app, so we can invoke the RAG system via HTTP request. It is defined in the `app/rag_demo/main.py` file as a FastAPI application and a single `/invoke` API and connection to the Redis Vector Store.
 
-#### Important code:
+<details><summary>Expand to see key parts</summary>
 
 ```
 embed_model = HuggingFaceEmbedding(model_name=EMBEDDING_MODEL_NAME)
@@ -116,6 +123,8 @@ llm = Ollama(
 # Create query engine that is ready to query our RAG
 query_engine = index.as_query_engine(llm=llm)
 ```
+
+</details>
 
 ### 
 
@@ -149,20 +158,22 @@ By default it creates an Autopilot GKE cluster but it can be changed to standard
 It creates:
 
 * IAM service accounts:  
-  * for a cluster  
-  * for Kubernetes permissions for app deployments (using [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation))  
-      
-* GCS bucket to store data to be ingested to the RAG.  
-* [Artifact registry](https://cloud.google.com/artifact-registry/docs/overview) as a storage for an app-demo  image   
+	* for a cluster  
+ 	* for Kubernetes permissions for app deployments (using [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation))  
+      	* GCS bucket to store data to be ingested to the RAG.  
+	* [Artifact registry](https://cloud.google.com/artifact-registry/docs/overview) as a storage for an app-demo  image   
     
-  1. Go the the terraform directory:
+
+
+
+1. Go the the terraform directory:
 
 ```
 cd terraform
 ```
 
-  2. Specify the following values inside the `default_env.tfvars` file (or make a separate copy):  
-- `<PROJECT_ID>` – replace with your project id (you can find it in the project settings).
+2. Specify the following values inside the `default_env.tfvars` file (or make a separate copy):  
+	- `<PROJECT_ID>` – replace with your project id (you can find it in the project settings).
 
 
 Other values can be changed, if needed, but can be left with default values.
@@ -178,7 +189,7 @@ terraform {
  }
 ```
 
-   4. Init terraform modules:
+4. Init terraform modules:
 
 ```
 terraform init
@@ -192,7 +203,7 @@ terraform init
 terraform plan -var-file=default_env.tfvars
 ```
 
-   6. Execute the plan:
+6. Execute the plan:
 
 ```
 terraform apply -var-file=default_env.tfvars
@@ -221,13 +232,11 @@ gcloud container clusters get-credentials $(terraform output -raw gke_cluster_na
 
 # Deploy the application to the cluster
 
-1. ## Deploy Redis-stack. 
+## 1. Deploy Redis-stack. 
 
    For this guide it was decided to use [redis-stack](https://hub.docker.com/r/redis/redis-stack) as a vector store, but there are many other [options](https://docs.llamaindex.ai/en/stable/module_guides/storing/vector_stores/).  
       
    IMPORTANT: For the simplicity of this guide, Redis  is deployed without persistent volumes, so the database is not persistent as well. Please consider proper persistence configuration for production. 
-
-   
 
    1. Apply Redis-stack manifest:
 
@@ -241,7 +250,7 @@ kubectl apply -f ../redis-stack.yaml
 kubectl rollout status deployment/redis-stack
 ```
 
-2. ## Deploy Ollama server
+## 2.  Deploy Ollama server
 
    [Ollama](https://ollama.com/) is a tool that will run LLMs. It interacts with Llama-index through its [ollama integration](https://docs.llamaindex.ai/en/stable/api_reference/llms/ollama/) and will serve the desired model, the `gemma2-9b` in our case.
 
@@ -250,8 +259,8 @@ kubectl rollout status deployment/redis-stack
 ```
 kubectl apply -f ../gen/ollama-deployment.yaml
 ```
-
-Key notes on the Ollama deployment `ollama-deployment.yaml` file:
+<details>
+<summary>Key notes on the Ollama deployment 'ollama-deployment.yaml' file: </summary>
 
 ```
 apiVersion: apps/v1
@@ -281,6 +290,7 @@ spec:
         - name: ollama-data # <- Volume with a bucket mounted with FUSE
           csi:
 ```
+</details>
 
 2. Wait for Ollama is successfully deployed:
 
@@ -294,7 +304,7 @@ kubectl rollout status deployment/ollama
 kubectl exec $(kubectl get pod -l app=ollama -o name) -c ollama -- ollama pull gemma2:9b
 ```
 
-3. ## Build the demo app image
+## 3. Build the demo app image
 
    
 
@@ -308,7 +318,7 @@ gcloud builds submit ../app \
 
    More information about the container image and demo application can be found in the `app` folder.
 
-4. ## Ingest data to the vector database by running a Kubernetes job.
+## 4. Ingest data to the vector database by running a Kubernetes job.
 
    
 
@@ -331,7 +341,8 @@ gcloud storage cp - gs://$(terraform output -raw bucket_name)/datalake/paul_grah
 kubectl apply -f ../gen/ingest-data-job.yaml
 ```
 
-Key notes on the `ingest-data-job.yaml` file:
+<details>
+<summary>Key notes on the 'ingest-data-job.yaml' file: </summary>
 
 ```
 apiVersion: batch/v1
@@ -365,13 +376,15 @@ spec:
       ...
 ```
 
+</details>
+
 3. Wait for data to be ingested. It may take few minutes:
 
 ```
 kubectl wait --for=condition=complete --timeout=600s job/llamaindex-ingest-data
 ```
 
-   4. Verify that data has been ingested:
+4. Verify that data has been ingested:
 
 ```
 kubectl logs -f -l name=ingest-data
@@ -388,15 +401,17 @@ Ingested 21 Nodes
 
 *NOTE: The job's pod might not be available to check if you wait too long, as Kubernetes can delete completed jobs after a period of time.*
 
-5. ## Deploy RAG server
+## 5.  Deploy RAG server
 
-   1. Apply created manifest:
+1. Apply created manifest:
 
 ```
 kubectl apply -f ../gen/rag-deployment.yaml
 ```
 
-Key notes on the `rag-deployment.yaml` file:
+<details>
+<summary>Key notes on the 'rag-deployment.yaml' file: </summary>
+
 
 ```
 apiVersion: apps/v1
@@ -419,6 +434,8 @@ spec:
           ...
 ```
 
+</details>
+
 2. Wait for deployment is completed:
 
 ```
@@ -439,7 +456,7 @@ kubectl  port-forward svc/llamaindex-rag-service 8000:8000
 
    
 
-   1. Do some prompting. If you ask `What Paul did?`, the output should look like this:
+3. Do some prompting. If you ask `What Paul did?`, the output should look like this:
 
 ```
 {
