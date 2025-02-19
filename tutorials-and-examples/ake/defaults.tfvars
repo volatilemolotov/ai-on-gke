@@ -1,0 +1,6 @@
+resource_group_name = ""
+cluster_name = ""
+cluster_dns_prefix = ""
+workflow_identity_name= ""
+workload_sa_name = ""
+workload_sa_namespace = "default"
