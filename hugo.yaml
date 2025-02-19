@@ -1,6 +1,7 @@
 languageCode: en-us
 title: AI on GKE
 
+docsDir: docs/site
 
 contentDir: docs/site/content
 publishDir: docs/site/public
@@ -70,3 +71,6 @@ params:
     sidebar_menu_compact: true
     sidebar_menu_foldable: true
     showLightDarkModeMenu: true
+services:
+  googleAnalytics:
+    id: G-1TVCQM7DWD
