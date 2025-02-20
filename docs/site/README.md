@@ -1,8 +1,10 @@
 ## Execute following command from repository root folder:
 
 ### Build static files locally:
+- Use `build -e production` in order to get minified source files
 
 ```docker run --mount type=bind,src=./,dst=/src floryn90/hugo:ext-alpine build```
+
 
 
 ### Run website locally:
