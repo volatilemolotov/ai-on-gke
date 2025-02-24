@@ -31,4 +31,6 @@ resource "azurerm_kubernetes_cluster" "k8s" {
     network_plugin    = "kubenet"
     load_balancer_sku = "standard"
   }
+  oidc_issuer_enabled=true
+  workload_identity_enabled = true
 }
